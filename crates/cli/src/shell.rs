@@ -109,13 +109,19 @@ impl Shell {
 
         // Print table information
         let row_count = self.table.iter().count();
-        println!("Table: {table_name}, Number of rows {row_count}");
+        println!("({row_count} rows)");
 
         // Print schema
-        let column_text = self.table.columns.iter()
+        let column_schema = self.table.columns.iter()
             .map(|Column{ name, col_type }| format!("{name} <{col_type}>"))
             .fold(String::from("|"), |acc, x| format!("{acc} {x} |"));
-        println!("{column_text}");
+        println!("{column_schema}");
+
+        // Print spacer
+        let row_spacer = self.table.columns.iter()
+            .map(|_| String::from(" --- "))
+            .fold(String::from("|"), |acc, x| format!("{acc} {x} |"));
+        println!("{row_spacer}");
 
         // Print all rows        
         for row in self.table.iter() {
