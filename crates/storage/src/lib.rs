@@ -1,20 +1,11 @@
 pub mod storage;
+pub mod row;
+pub mod value;
 pub mod memory;
-pub mod disk;
+// pub mod disk;
 
 pub use storage::Storage;
+pub use row::Row;
+pub use value::Value;
 pub use memory::MemoryStorage;
-pub use disk::DiskStorage;
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct Row {
-    pub values: Vec<Value>,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum Value {
-    Int(i64),
-    Text(String),
-
-    // ...
-}
+// pub use disk::DiskStorage;
