@@ -1,8 +1,10 @@
 use std::io::{self, Write};
 
 use storage::Storage;
+use table::Table;
 
-pub fn start_repl<S: Storage>(_storage: S) {
+
+pub fn start_repl<S: Storage>(_table: Table<S>) {
     println!("Starting CLI REPL... (type .exit to quit)");
     let mut input = String::new();
 

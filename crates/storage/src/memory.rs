@@ -12,7 +12,7 @@ pub struct MemoryStorage {
 impl MemoryStorage {
     pub fn new() -> Self {
         let data = HashMap::new();
-        let next_id = 1;
+        let next_id = 0;
 
         Self {
             data,

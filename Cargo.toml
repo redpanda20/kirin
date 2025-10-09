@@ -5,6 +5,7 @@ members = [
     "crates/sql",
     "crates/cli",
     "crates/utils",
+    "crates/table",
 ]
 resolver = "3"
 
