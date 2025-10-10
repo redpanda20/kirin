@@ -1,9 +1,8 @@
+mod shell;
 
 use storage::{MemoryStorage, Value};
 use table::{Column, Table};
-
-mod shell;
-use crate::shell::Shell;
+use shell::Shell;
 
 fn main() {
 

@@ -34,47 +34,37 @@ impl Shell {
     }
 
     fn execute(&mut self, input: &str) -> Result<(), ()> {
-        match input {
+        match input.trim() {
+            ".exit" => return Err(()),
+
             cmd if cmd.starts_with(".") => self.execute_command(input),
 
-            cmd if cmd.starts_with("SELECT") => {
-                self.handle_select(input);
-                Ok(())
-            },
+            cmd if cmd.starts_with("SELECT") => self.handle_select(input),
 
-            cmd if cmd.starts_with("INSERT") => {
-                self.handle_insert(input);
-                Ok(())
-            },
+            cmd if cmd.starts_with("INSERT") => self.handle_insert(input),
 
-            _ => Err(())
+            _ => ()
         }
+        Ok(())
     }
 
-    fn execute_command(&mut self, input: &str) -> Result<(), ()> {
+    pub fn execute_command(&mut self, input: &str) {
         let input = &mut input.trim().split_ascii_whitespace();
 
-        let Some(command) = input.next() else {
-            println!("Expected command");
-            return Err(());
-        };
-
+        let command = input.next().unwrap_or("");
         let args: Vec<_> = input.collect();
 
         // Evaluate & Print
         match (command, args) {
-            (".exit", _) => return Err(()),
             (".help", _) => help(),
             (".tables", _) => active_tables(&self.table),
             (".backend", _) => active_backend(),
             (".schema", args) => schema(&self.table, args),
             _ => println!("Unknown command, type .help"),
         };
-
-        Ok(())
     }
 
-    fn handle_select(&mut self, input: &str) {
+    pub fn handle_select(&mut self, input: &str) {
 
         // Expected format:
         // "SELECT * FROM <table>"
@@ -132,7 +122,7 @@ impl Shell {
     }
 
 
-    fn handle_insert(&mut self, input: &str) {
+    pub fn handle_insert(&mut self, input: &str) {
 
         // Expected format:
         // INSERT INTO users VALUES ('Alice', 170.5)
