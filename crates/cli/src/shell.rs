@@ -1,54 +1,48 @@
-use std::io::{self, Write};
+use std::io::{stdin, Result, Write};
 
-use storage::{MemoryStorage, Storage, Value};
+use storage::{MemoryStorage, Value};
 use table::{Column, Table};
 
-pub struct Shell {
-    table: Table<MemoryStorage>
+pub struct Shell<'a> {
+    table: Table<MemoryStorage>,
+    writer: &'a mut dyn Write,
 }
 
-impl Shell {
+impl <'a> Shell<'a> {
 
-    pub fn new(table: Table<MemoryStorage>) -> Self {
-        Self { table }
+    pub fn new(table: Table<MemoryStorage>, writer: &'a mut dyn Write) -> Self {
+        Self { table, writer }
     }
 
-    pub fn run(&mut self) {
-        println!("Starting CLI REPL... (type .exit to quit)");
+    pub fn run(&mut self) -> Result<()> {
+        writeln!(self.writer, "Starting CLI REPL... (type .exit to quit)")?;
 
         loop {
-            print!("kirin> ");
-            io::stdout().flush().unwrap();
+            write!(self.writer,"kirin> ")?;
+            self.writer.flush()?;
 
             // Read
             let mut line = String::new();
-            io::stdin().read_line(&mut line).unwrap();
+            stdin().read_line(&mut line)?;
 
-            match self.execute(&line) {
-                Ok(_) => (),
-                Err(_) => break,
+            match line.trim() {
+                ".exit" => break,
+
+                cmd if cmd.starts_with(".") => self.execute_command(cmd)?,
+
+                cmd if cmd.starts_with("SELECT") => self.handle_select(cmd)?,
+
+                cmd if cmd.starts_with("INSERT") => self.handle_insert(cmd)?,
+
+                _ => (),
             }
         }
 
-        println!("Exiting Kirin CLI.");
-    }
-
-    fn execute(&mut self, input: &str) -> Result<(), ()> {
-        match input.trim() {
-            ".exit" => return Err(()),
-
-            cmd if cmd.starts_with(".") => self.execute_command(input),
-
-            cmd if cmd.starts_with("SELECT") => self.handle_select(input),
-
-            cmd if cmd.starts_with("INSERT") => self.handle_insert(input),
-
-            _ => ()
-        }
+        writeln!(self.writer, "Exiting Kirin CLI.")?;
         Ok(())
     }
 
-    pub fn execute_command(&mut self, input: &str) {
+    pub fn execute_command(&mut self, input: &str) -> Result<()> {
         let input = &mut input.trim().split_ascii_whitespace();
 
         let command = input.next().unwrap_or("");
@@ -56,15 +50,40 @@ impl Shell {
 
         // Evaluate & Print
         match (command, args) {
-            (".help", _) => help(),
-            (".tables", _) => active_tables(&self.table),
-            (".backend", _) => active_backend(),
-            (".schema", args) => schema(&self.table, args),
-            _ => println!("Unknown command, type .help"),
-        };
+            (".help", _) => {
+                writeln!(self.writer, "Available commands: .help, .exit, .tables, .backend, .schema")
+            },
+            (".tables", _) => {
+                let table_name = &self.table.name;
+                writeln!(self.writer, "Active Tables: {table_name}")
+            },
+            (".backend", _) => {
+                writeln!(self.writer, "Currently using in-memory storage")
+            },
+            (".schema", args) => {
+                // Check arguments exist
+                let Some(table_name) = args.first() else {
+                    return writeln!(self.writer, "Expected format: .schema {{table}}")
+                };
+
+                // Check table specified
+                let Some(table_ref) = Some(&self.table) else {
+                    return writeln!(self.writer, "Table ({table_name}) not found")
+                };
+
+                let column_text = table_ref.columns.iter()
+                    .map(|Column{ name, col_type }| format!("{name} <{col_type}>"))
+                    .fold(String::from("|"), |acc, x| format!("{acc} {x} |"));
+                writeln!(self.writer, "{column_text}")
+
+            },
+            _ => {
+                writeln!(self.writer, "Unknown command, type .help")
+            },
+        }
     }
 
-    pub fn handle_select(&mut self, input: &str) {
+    pub fn handle_select(&mut self, input: &str) -> Result<()> {
 
         // Expected format:
         // "SELECT * FROM <table>"
@@ -73,56 +92,53 @@ impl Shell {
     
         let input_upper = input.to_uppercase();
         if !input_upper.starts_with("SELECT") {
-            println!("Malformed SELECT command");
-            return;
+            return writeln!(self.writer, "Malformed SELECT command")
         }
 
         // Very naive split (stub only)
         let parts: Vec<&str> = input.split_whitespace().collect();
         if parts.len() < 4 {
-            println!("Expected syntax: SELECT * FROM <table>");
-            return;
+            return writeln!(self.writer, "Expected syntax: SELECT * FROM <table>")
         }
 
         // Check for FROM keyword
         if parts.get(2).unwrap().trim() != "FROM" {
-            println!("Missing FROM clause");
-            return;
+            return writeln!(self.writer, "Missing FROM clause")
         }
 
         // Check table name matches
         let table_name = *parts.get(3).unwrap_or(&"");
         if table_name != self.table.name {
-            println!("Table '{}' not found", table_name);
-            return;
+            return writeln!(self.writer, "Table '{}' not found", table_name)
         }
 
         // Print table information
         let row_count = self.table.iter().count();
-        println!("({row_count} rows)");
+        writeln!(self.writer, "({row_count} rows)")?;
 
         // Print schema
         let column_schema = self.table.columns.iter()
             .map(|Column{ name, col_type }| format!("{name} <{col_type}>"))
             .fold(String::from("|"), |acc, x| format!("{acc} {x} |"));
-        println!("{column_schema}");
+        writeln!(self.writer, "{column_schema}")?;
 
         // Print spacer
         let row_spacer = self.table.columns.iter()
             .map(|_| String::from(" --- "))
             .fold(String::from("|"), |acc, x| format!("{acc} {x} |"));
-        println!("{row_spacer}");
+        writeln!(self.writer, "{row_spacer}")?;
 
         // Print all rows        
         for row in self.table.iter() {
             let row_str = row.values.iter().fold(String::from("|"), |acc, x| format!("{acc} {x} |"));
-            println!("{row_str}")
+            writeln!(self.writer, "{row_str}")?
         }
 
+        Ok(())
     }
 
 
-    pub fn handle_insert(&mut self, input: &str) {
+    pub fn handle_insert(&mut self, input: &str) -> Result<()> {
 
         // Expected format:
         // INSERT INTO users VALUES ('Alice', 170.5)
@@ -130,40 +146,37 @@ impl Shell {
         let input = input.trim();
 
         if !input.to_uppercase().starts_with("INSERT INTO") {
-            println!("Malformed INSERT command");
-            return;
+            return writeln!(self.writer, "Malformed INSERT command")
         }
 
         // Very naive split (stub only)
         let parts: Vec<&str> = input.split_whitespace().collect();
         if parts.len() < 4 {
-            println!("Expected syntax: INSERT INTO <table> VALUES (...)");
-            return;
+            return writeln!(self.writer, "Expected syntax: INSERT INTO <table> VALUES (...)")
         }
 
         // We are assuming it is in the correct order
         let table_name = parts[2];
         if self.table.name != table_name {
-            println!("Table '{table_name}' not found");
-            return;
+            return writeln!(self.writer, "Table '{table_name}' not found")
         }
 
         // Convert input *eagerly* into typed values
         let values_str = input.split("VALUES").nth(1).unwrap_or("").trim().trim_start_matches('(').trim_end_matches(')');
         if values_str.is_empty() {
-            println!("No values provided");
-            return;
+            return writeln!(self.writer, "No values provided")
         }
 
         let values: Vec<Value> = values_str.split(",").map(|s| eagerly_convert_to_value(s.trim())).collect();
 
 
         if let Some(row_id) = self.table.insert(values) {
-            println!("Inserted row with id {row_id}");
-            return;
+            return writeln!(self.writer, "Inserted row with id {row_id}")
         };
 
-        println!("Insert failed: type mismatch or column count mismatch");
+        writeln!(self.writer, "Insert failed: type mismatch or column count mismatch")?;
+
+        Ok(())
     }
 
 }
@@ -181,35 +194,3 @@ fn eagerly_convert_to_value(input: &str) -> Value {
         return Value::Text(input.to_string())
     }
 }
-
-fn help() {
-    println!("Available commands: .help, .exit, .tables, .backend, .schema");
-}
-
-fn active_tables<S: Storage>(table: &Table<S>) {
-    let table_name = &table.name;
-    println!("Active Tables: {table_name}")
-}
-
-fn active_backend() {
-    println!("Currently using in-memory storage")
-}
-
-fn schema<S: Storage>(table: &Table<S>, args: Vec<&str>) {
-    // Check arguments exist
-    let Some(table_name) = args.first() else {
-        println!("Expected format: .schema {{table}}");
-        return;
-    };
-    // Check table specified
-    let Some(table_ref) = Some(&table) else {
-        println!("Table ({table_name}) not found");
-        return;
-    };
-    let column_text = table_ref.columns.iter()
-        .map(|Column{ name, col_type }| format!("{name} <{col_type}>"))
-        .fold(String::from("|"), |acc, x| format!("{acc} {x} |"));
-    println!("{column_text}")
-
-}
-

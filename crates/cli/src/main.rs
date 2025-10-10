@@ -1,5 +1,7 @@
 mod shell;
 
+use std::io::stdout;
+
 use storage::{MemoryStorage, Value};
 use table::{Column, Table};
 use shell::Shell;
@@ -23,6 +25,5 @@ fn main() {
 
     table.insert(vec![Value::Text("Bob".into()), Value::Float(183.2)]);
 
-
-    Shell::new(table).run()
+    let _ = Shell::new(table, &mut stdout()).run();
 }
