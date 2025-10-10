@@ -1,4 +1,5 @@
 mod shell;
+mod shell_tests;
 
 use std::io::stdout;
 
