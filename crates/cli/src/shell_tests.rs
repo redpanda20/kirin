@@ -63,4 +63,48 @@ mod tests {
         // No data rows expected
         assert!(!printed.contains("| 1 |"));
     }
+
+    #[test]
+    fn malformed_select_shows_error_message() {
+        let storage = MemoryStorage::new();
+        let columns = vec![
+            Column { name: "id".into(), col_type: ValueType::Int },
+            Column { name: "name".into(), col_type: ValueType::Text },
+        ];
+        let table = Table::new("users", columns, storage);
+        let mut output = Vec::new();
+
+        {
+            let mut shell = Shell::new(table, &mut output);
+            shell.handle_select("SELECT * FRM users").unwrap();
+        }
+
+        let printed = String::from_utf8(output).expect("Valid UTF-8");
+
+        // Expect error message to mention correct syntax
+        assert!(printed.contains("FROM"));
+    }
+
+        #[test]
+    fn select_from_missing_table_shows_error_message() {
+        let storage = MemoryStorage::new();
+        let columns = vec![
+            Column { name: "id".into(), col_type: ValueType::Int },
+            Column { name: "name".into(), col_type: ValueType::Text },
+        ];
+        let table = Table::new("users", columns, storage);
+        let mut output = Vec::new();
+
+        {
+            let mut shell = Shell::new(table, &mut output);
+            shell.handle_select("SELECT * FROM students").unwrap();
+        }
+
+        let printed = String::from_utf8(output).expect("Valid UTF-8");
+
+        // Expect error message to mention correct syntax
+        assert!(printed.contains("students"));
+        assert!(printed.contains("not found"));
+    }
+
 }

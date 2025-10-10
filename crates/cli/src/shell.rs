@@ -130,7 +130,8 @@ impl <'a> Shell<'a> {
 
         // Print all rows        
         for row in self.table.iter() {
-            let row_str = row.values.iter().fold(String::from("|"), |acc, x| format!("{acc} {x} |"));
+            let row_str = row.values.iter()
+            .fold(String::from("|"), |acc, x| format!("{acc} {x} |"));
             writeln!(self.writer, "{row_str}")?
         }
 
