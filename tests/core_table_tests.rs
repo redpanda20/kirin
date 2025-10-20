@@ -5,13 +5,11 @@ use storage::MemoryStorage;
 
 #[test]
 fn insert_and_retrieve_row() {
-    let storage = MemoryStorage::new();
     let columns = vec![
         Column { name: "id".into(), col_type: ValueType::Int },
         Column { name: "name".into(), col_type: ValueType::Text },
     ];
-
-    let mut table = Table::new("users", columns, storage);
+    let mut table = Table::new(columns, MemoryStorage::new());
 
     let inserted = table.insert(vec![Value::Int(1), Value::Text("Alice".into())]);
     assert!(inserted.is_some(), "Insert should succeed");
@@ -26,13 +24,11 @@ fn insert_and_retrieve_row() {
 
 #[test]
 fn insert_fails_on_column_mismatch() {
-    let storage = MemoryStorage::new();
     let columns = vec![
         Column { name: "id".into(), col_type: ValueType::Int },
         Column { name: "name".into(), col_type: ValueType::Text },
     ];
-
-    let mut table = Table::new("users", columns, storage);
+    let mut table = Table::new(columns, MemoryStorage::new());
 
     // Only one value instead of two
     let result = table.insert(vec![Value::Int(42)]);
@@ -41,13 +37,11 @@ fn insert_fails_on_column_mismatch() {
 
 #[test]
 fn insert_fails_on_type_mismatch() {
-    let storage = MemoryStorage::new();
     let columns = vec![
         Column { name: "id".into(), col_type: ValueType::Int },
         Column { name: "name".into(), col_type: ValueType::Text },
     ];
-
-    let mut table = Table::new("users", columns, storage);
+    let mut table = Table::new(columns, MemoryStorage::new());
 
     // id should be Int, but given Text
     let result = table.insert(vec![
@@ -59,13 +53,11 @@ fn insert_fails_on_type_mismatch() {
 
 #[test]
 fn iterate_returns_all_rows() {
-    let storage = MemoryStorage::new();
     let columns = vec![
         Column { name: "id".into(), col_type: ValueType::Int },
         Column { name: "name".into(), col_type: ValueType::Text },
     ];
-
-    let mut table = Table::new("users", columns, storage);
+    let mut table = Table::new(columns, MemoryStorage::new());
 
     table.insert(vec![Value::Int(1), Value::Text("Alice".into())]);
     table.insert(vec![Value::Int(2), Value::Text("Bob".into())]);

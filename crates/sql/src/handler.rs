@@ -5,7 +5,7 @@ use database::Database;
 
 type Writer<'a> = &'a mut dyn Write;
 
-pub fn handle_select<'a>(db: &Database, writer: Writer, input: &str) -> Result<()> {
+pub fn handle_select<'a>(db: &mut Database, writer: Writer, input: &str) -> Result<()> {
 
     // Expected format:
     // "SELECT * FROM <table>"
@@ -30,28 +30,28 @@ pub fn handle_select<'a>(db: &Database, writer: Writer, input: &str) -> Result<(
 
     // Check table name matches
     let table_name = *parts.get(3).unwrap_or(&"");
-    if table_name != db.table.name {
-        return writeln!(writer, "Table '{}' not found", table_name)
-    }
+    let Some(table) = db.get_table(table_name.to_string()) else {
+        return writeln!(writer, "Table '{table_name}' not found")
+    };
 
     // Print table information
-    let row_count = db.table.iter().count();
+    let row_count = table.iter().count();
     writeln!(writer, "({row_count} rows)")?;
 
     // Print schema
-    let column_schema = db.table.columns.iter()
+    let column_schema = table.columns.iter()
         .map(|Column{ name, col_type }| format!("{name} <{col_type}>"))
         .fold(String::from("|"), |acc, x| format!("{acc} {x} |"));
     writeln!(writer, "{column_schema}")?;
 
     // Print spacer
-    let row_spacer = db.table.columns.iter()
+    let row_spacer = table.columns.iter()
         .map(|_| String::from(" --- "))
         .fold(String::from("|"), |acc, x| format!("{acc} {x} |"));
     writeln!(writer, "{row_spacer}")?;
 
     // Print all rows        
-    for row in db.table.iter() {
+    for row in table.iter() {
         let row_str = row.values.iter()
         .fold(String::from("|"), |acc, x| format!("{acc} {x} |"));
         writeln!(writer, "{row_str}")?
@@ -79,9 +79,10 @@ pub fn handle_select<'a>(db: &Database, writer: Writer, input: &str) -> Result<(
 
         // We are assuming it is in the correct order
         let table_name = parts[2];
-        if db.table.name != table_name {
+        let Some(table) = db.get_table(table_name.to_string()) else {
             return writeln!(writer, "Table '{table_name}' not found")
-        }
+        };
+
 
         // Convert input *eagerly* into typed values
         let values_str = input.split("VALUES").nth(1).unwrap_or("").trim().trim_start_matches('(').trim_end_matches(')');
@@ -92,7 +93,7 @@ pub fn handle_select<'a>(db: &Database, writer: Writer, input: &str) -> Result<(
         let values: Vec<Value> = values_str.split(",").map(|s| eagerly_convert_to_value(s.trim())).collect();
 
 
-        if let Some(row_id) = db.table.insert(values) {
+        if let Some(row_id) = table.insert(values) {
             return writeln!(writer, "Inserted row with id {row_id}")
         };
 

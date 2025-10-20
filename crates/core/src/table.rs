@@ -4,15 +4,12 @@ use crate::{Column, Row, RowId, Storage, Value, ValueType};
 
 pub struct Table<S: Storage> {
     storage: S,
-
-    pub name: String,
     pub columns: Vec<Column>,
 }
 
 impl<S: Storage> Table<S> {
-    pub fn new(name: &str, columns: Vec<Column>, storage: S) -> Self {
+    pub fn new(columns: Vec<Column>, storage: S) -> Self {
         Self {
-            name: name.to_string(),
             columns,
             storage,
         }

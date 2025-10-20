@@ -54,8 +54,8 @@ impl <'a> Shell<'a> {
                 writeln!(self.writer, "Available commands: .help, .exit, .tables, .backend, .schema")
             },
             (".tables", _) => {
-                let table_name = &self.db.table.name;
-                writeln!(self.writer, "Active Tables: {table_name}")
+                let tables = &self.db.get_table_names().fold(String::new(), |acc, s| acc + " " + s);
+                writeln!(self.writer, "Active Tables: {tables}")
             },
             (".backend", _) => {
                 writeln!(self.writer, "Currently using in-memory storage")
@@ -67,11 +67,11 @@ impl <'a> Shell<'a> {
                 };
 
                 // Check table specified
-                let Some(table_ref) = Some(&self.db.table) else {
+                let Some(table) = self.db.get_table(table_name.to_string()) else {
                     return writeln!(self.writer, "Table ({table_name}) not found")
                 };
 
-                let column_text = table_ref.columns.iter()
+                let column_text = table.columns.iter()
                     .map(|Column{ name, col_type }| format!("{name} <{col_type}>"))
                     .fold(String::from("|"), |acc, x| format!("{acc} {x} |"));
                 writeln!(self.writer, "{column_text}")
@@ -84,7 +84,7 @@ impl <'a> Shell<'a> {
     }
 
     pub fn handle_select(&mut self, input: &str) -> Result<()> {
-        sql::handler::handle_select(&self.db, self.writer, input)
+        sql::handler::handle_select(&mut self.db, self.writer, input)
     }
 
 
