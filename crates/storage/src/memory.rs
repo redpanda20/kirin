@@ -1,6 +1,5 @@
+use core::{Row, RowId, Storage};
 use std::collections::HashMap;
-
-use crate::{storage::RowId, Row, Storage};
 
 /// In memory storage implementation
 
@@ -22,7 +21,7 @@ impl MemoryStorage {
 }
 
 impl Storage for MemoryStorage {
-    fn insert(&mut self, row: crate::Row) -> RowId {
+    fn insert(&mut self, row: Row) -> RowId {
         let id = self.next_id;
 
         self.data.insert(id, row);
@@ -31,7 +30,7 @@ impl Storage for MemoryStorage {
         id
     }
 
-    fn get(&self, row_id: RowId) -> Option<&crate::Row> {
+    fn get(&self, row_id: RowId) -> Option<&Row> {
         self.data.get(&row_id)
     }
 
@@ -39,7 +38,7 @@ impl Storage for MemoryStorage {
         self.data.remove(&row_id).is_some()
     }
 
-    fn iter(&self) -> Box<dyn Iterator<Item = &crate::Row> + '_> {
+    fn iter(&self) -> Box<dyn Iterator<Item = &Row> + '_> {
         Box::new(self.data.values())
     }
 }

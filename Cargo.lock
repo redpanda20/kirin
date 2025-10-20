@@ -56,8 +56,17 @@ dependencies = [
 name = "cli"
 version = "0.1.0"
 dependencies = [
+ "core",
+ "database",
+ "sql",
  "storage",
- "table",
+]
+
+[[package]]
+name = "core"
+version = "0.1.0"
+dependencies = [
+ "chrono",
 ]
 
 [[package]]
@@ -67,8 +76,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
 
 [[package]]
-name = "execution"
+name = "database"
 version = "0.1.0"
+dependencies = [
+ "core",
+ "storage",
+]
 
 [[package]]
 name = "find-msvc-tools"
@@ -170,12 +183,16 @@ checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
 [[package]]
 name = "sql"
 version = "0.1.0"
+dependencies = [
+ "core",
+ "database",
+]
 
 [[package]]
 name = "storage"
 version = "0.1.0"
 dependencies = [
- "chrono",
+ "core",
 ]
 
 [[package]]
@@ -190,9 +207,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "table"
+name = "tests"
 version = "0.1.0"
 dependencies = [
+ "cli",
+ "core",
+ "database",
+ "sql",
  "storage",
 ]
 
@@ -201,10 +222,6 @@ name = "unicode-ident"
 version = "1.0.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f63a545481291138910575129486daeaf8ac54aee4387fe7906919f7830c7d9d"
-
-[[package]]
-name = "utils"
-version = "0.1.0"
 
 [[package]]
 name = "wasm-bindgen"

@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use storage::Value;
+use crate::Value;
 
 #[derive(Debug, PartialEq)]
 pub enum ValueType {

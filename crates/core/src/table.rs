@@ -1,8 +1,6 @@
 use std::iter::zip;
 
-use storage::{storage::RowId, Row, Storage, Value};
-
-use crate::{Column, ValueType};
+use crate::{Column, Row, RowId, Storage, Value, ValueType};
 
 pub struct Table<S: Storage> {
     storage: S,

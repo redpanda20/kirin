@@ -1,22 +1,19 @@
-mod shell;
-mod shell_tests;
 
+use core::{Column, Table, Value, ValueType};
 use std::io::stdout;
 
-use storage::{MemoryStorage, Value};
-use table::{Column, Table};
-use shell::Shell;
+use cli::Shell;
+use database::Database;
+use storage::{MemoryStorage};
 
 fn main() {
 
     // Opens a new storage
     let storage = MemoryStorage::new();
-    
-    println!("Kirin DB initialized with MemoryStorage.");
 
     let schema = vec![
-        Column { name: "Name".into(), col_type: table::ValueType::Text },
-        Column { name: "Height".into(), col_type: table::ValueType::Float },
+        Column { name: "Name".into(), col_type: ValueType::Text },
+        Column { name: "Height".into(), col_type: ValueType::Float },
     ];
 
     // Opens a new table
@@ -26,5 +23,11 @@ fn main() {
 
     table.insert(vec![Value::Text("Bob".into()), Value::Float(183.2)]);
 
-    let _ = Shell::new(table, &mut stdout()).run();
+    // Create database 
+    // TODO: Reorder this sensibly
+    let database = Database { table };
+
+    println!("Kirin DB initialized with MemoryStorage.");
+
+    let _ = Shell::new(database, &mut stdout()).run();
 }

@@ -1,5 +1,7 @@
+use core::{Row, Value, Storage};
 
-use storage::{MemoryStorage, Row, Storage, Value};
+use storage::MemoryStorage;
+
 
 #[test]
 fn memory_storage_insert_and_fetch() {

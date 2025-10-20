@@ -1,5 +1,7 @@
-use storage::{MemoryStorage, Value};
-use table::{Table, Column, ValueType};
+use core::{Column, Table, Value, ValueType};
+
+use storage::MemoryStorage;
+
 
 #[test]
 fn insert_and_retrieve_row() {

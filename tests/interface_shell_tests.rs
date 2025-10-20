@@ -1,9 +1,8 @@
-#[cfg(test)]
-mod tests {
-    use storage::{MemoryStorage, Value};
-    use table::{Table, Column, ValueType};
+use core::{Column, Table, Value, ValueType};
 
-    use crate::shell::Shell;
+use cli::Shell;
+use database::Database;
+use storage::MemoryStorage;
 
     #[test]
     fn handle_select_displays_table_correctly() {
@@ -23,7 +22,7 @@ mod tests {
 
         {
             // Construct shell referencing the buffer
-            let mut shell = Shell::new(table, &mut output);
+            let mut shell = Shell::new(Database { table: table }, &mut output);
             shell.handle_select("SELECT * FROM users").unwrap();
         }
 
@@ -49,7 +48,7 @@ mod tests {
         let mut output = Vec::new();
 
         {
-            let mut shell = Shell::new(table, &mut output);
+            let mut shell = Shell::new(Database { table: table }, &mut output);
             shell.handle_select("SELECT * FROM users").unwrap();
         }
 
@@ -75,7 +74,7 @@ mod tests {
         let mut output = Vec::new();
 
         {
-            let mut shell = Shell::new(table, &mut output);
+            let mut shell = Shell::new(Database { table: table }, &mut output);
             shell.handle_select("SELECT * FRM users").unwrap();
         }
 
@@ -96,7 +95,7 @@ mod tests {
         let mut output = Vec::new();
 
         {
-            let mut shell = Shell::new(table, &mut output);
+            let mut shell = Shell::new(Database { table: table }, &mut output);
             shell.handle_select("SELECT * FROM students").unwrap();
         }
 
@@ -107,4 +106,3 @@ mod tests {
         assert!(printed.contains("not found"));
     }
 
-}

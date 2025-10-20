@@ -1,0 +1,23 @@
+[package]
+name = "tests"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+core = { path = "../crates/core" }
+database = { path = "../crates/database" }
+sql = { path = "../crates/sql" }
+storage = { path = "../crates/storage" }
+cli = { path = "../crates/cli" }
+
+[[test]]
+name = "core_table_tests"
+path = "core_table_tests.rs"
+
+[[test]]
+name = "interface_shell_tests"
+path = "interface_shell_tests.rs"
+
+[[test]]
+name = "storage_memory_tests"
+path = "storage_memory_tests.rs"

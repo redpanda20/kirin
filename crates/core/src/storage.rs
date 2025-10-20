@@ -1,8 +1,6 @@
+use crate::{Row, RowId};
+
 /// Generic storage trait
-
-use crate::Row;
-
-pub type RowId = u64;
 
 pub trait Storage {
     /// Insert a row; returns a RowId for retrieval

@@ -4,5 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-table = { path = "../table" }
+core = { path = "../core" }
+database = { path = "../database" }
+sql = { path = "../sql" }
 storage = { path = "../storage" }
